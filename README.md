@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/go-1.25%2B-00ADD8.svg)](go.mod)
-[![Release](https://img.shields.io/github/v/release/tpt-av/tpt-av?include_prereleases)](https://github.com/tpt-av/tpt-av/releases)
+[![Release](https://img.shields.io/github/v/release/PhillipC05/tpt-av?include_prereleases)](https://github.com/PhillipC05/tpt-av/releases)
 
 TPT-AV is a suite of small, focused daemons that protect endpoints against
 network intrusion, malware, file tampering, phishing, and ransomware — without
@@ -45,18 +45,18 @@ optional web dashboard.
 ### Pre-built binaries
 
 Download the archive for your platform from the
-[Releases](https://github.com/tpt-av/tpt-av/releases) page and extract it.
+[Releases](https://github.com/PhillipC05/tpt-av/releases) page and extract it.
 
 ### Linux (install script)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tpt-av/tpt-av/main/install.sh | sudo sh
+curl -fsSL https://raw.githubusercontent.com/PhillipC05/tpt-av/main/install.sh | sudo sh
 ```
 
 Or with the Makefile from source:
 
 ```sh
-git clone https://github.com/tpt-av/tpt-av.git
+git clone https://github.com/PhillipC05/tpt-av.git
 cd tpt-av
 sudo make install-linux
 sudo systemctl enable --now tpt-guard tpt-patrol
@@ -65,7 +65,7 @@ sudo systemctl enable --now tpt-guard tpt-patrol
 ### Windows (PowerShell, run as Administrator)
 
 ```powershell
-irm https://raw.githubusercontent.com/tpt-av/tpt-av/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/PhillipC05/tpt-av/main/install.ps1 | iex
 ```
 
 Or run the NSIS installer from the release archive.

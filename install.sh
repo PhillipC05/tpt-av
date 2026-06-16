@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # TPT-AV Linux installer
-# Usage:  curl -fsSL https://raw.githubusercontent.com/tpt-av/tpt-av/main/install.sh | bash
+# Usage:  curl -fsSL https://raw.githubusercontent.com/PhillipC05/tpt-av/main/install.sh | bash
 # Or:     ./install.sh
 set -euo pipefail
 
-REPO="tpt-av/tpt-av"
+REPO="PhillipC05/tpt-av"
 INSTALL_DIR="/usr/local/bin"
 CONFIG_DIR="/etc/tpt"
 DATA_DIR="/var/lib/tpt"

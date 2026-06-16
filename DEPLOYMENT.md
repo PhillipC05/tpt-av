@@ -39,7 +39,7 @@ loopback by default.
 ### 2a. Scripted install (recommended)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/tpt-av/tpt-av/main/install.sh | sudo sh
+curl -fsSL https://raw.githubusercontent.com/PhillipC05/tpt-av/main/install.sh | sudo sh
 ```
 
 The script downloads the latest release for your architecture (`amd64`/`arm64`),
@@ -50,7 +50,7 @@ installs the systemd units.
 ### 2b. From source
 
 ```sh
-git clone https://github.com/tpt-av/tpt-av.git
+git clone https://github.com/PhillipC05/tpt-av.git
 cd tpt-av
 make build-linux            # or build-linux-arm64
 sudo make install-linux
@@ -97,7 +97,7 @@ tptctl patrol status
 ### 3a. Scripted install (PowerShell as Administrator)
 
 ```powershell
-irm https://raw.githubusercontent.com/tpt-av/tpt-av/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/PhillipC05/tpt-av/main/install.ps1 | iex
 ```
 
 This installs binaries to `%ProgramFiles%\TPT-AV`, adds them to the system PATH,
@@ -208,7 +208,7 @@ then start them again:
 
 ```powershell
 Stop-Service tpt-guard, tpt-patrol, tpt-backup
-irm https://raw.githubusercontent.com/tpt-av/tpt-av/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/PhillipC05/tpt-av/main/install.ps1 | iex
 Start-Service tpt-guard, tpt-patrol
 ```
 

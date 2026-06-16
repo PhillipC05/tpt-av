@@ -1,6 +1,6 @@
 #Requires -RunAsAdministrator
 # TPT-AV Windows installer (PowerShell)
-# Usage:  irm https://raw.githubusercontent.com/tpt-av/tpt-av/main/install.ps1 | iex
+# Usage:  irm https://raw.githubusercontent.com/PhillipC05/tpt-av/main/install.ps1 | iex
 # Or:     .\install.ps1
 [CmdletBinding()]
 param(
@@ -10,7 +10,7 @@ param(
     [string]$LogDir     = "$env:ProgramData\TPT\logs"
 )
 
-$Repo = "tpt-av/tpt-av"
+$Repo = "PhillipC05/tpt-av"
 
 Write-Host "TPT-AV Windows Installer" -ForegroundColor Cyan
 Write-Host ""

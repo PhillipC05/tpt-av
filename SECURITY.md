@@ -15,7 +15,7 @@ reporting an issue.
 
 Instead, use one of the following private channels:
 
-- Open a [GitHub Security Advisory](https://github.com/tpt-av/tpt-av/security/advisories/new)
+- Open a [GitHub Security Advisory](https://github.com/PhillipC05/tpt-av/security/advisories/new)
   (preferred), or
 - Email the maintainers at **security@tpt-av.dev**.
 

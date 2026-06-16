@@ -24,4 +24,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cross-platform build tooling: Makefile, GoReleaser config, Docker/Compose,
   systemd units, and Linux/Windows installers.
 
-[Unreleased]: https://github.com/tpt-av/tpt-av/commits/main
+[Unreleased]: https://github.com/PhillipC05/tpt-av/commits/main
