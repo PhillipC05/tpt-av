@@ -1,0 +1,16 @@
+[Unit]
+Description=TPT Backup Daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/tpt-backup
+Restart=on-failure
+RestartSec=30
+User=root
+Group=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

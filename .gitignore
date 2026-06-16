@@ -1,0 +1,38 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build artifacts
+dist/
+
+# Test binary
+*.test
+
+# Go coverage
+*.out
+coverage.html
+
+# SQLite databases (runtime data, not committed)
+*.db
+*.sqlite
+*.sqlite3
+
+# Config files with real credentials
+/config/guard.toml
+/config/patrol.toml
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Env
+.env

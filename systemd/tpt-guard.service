@@ -1,0 +1,18 @@
+[Unit]
+Description=TPT Guard – Firewall & DNS whitelist daemon
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/tpt-guard --config /etc/tpt/guard.toml
+Restart=on-failure
+RestartSec=5s
+User=root
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tpt-guard
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_RAW
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,110 @@
+# TPT Patrol – example configuration
+# Copy to /etc/tpt/patrol.toml (Linux) or C:\ProgramData\TPT\patrol.toml (Windows)
+
+[scan]
+schedule       = "0 */6 * * *"   # every 6 hours (cron syntax)
+scan_window    = "02:00-05:00"    # only scan during this time window
+priority       = "low"            # below-normal OS thread priority
+batch_delay_ms = 10               # ms sleep between file reads (0 = full speed)
+
+baseline_paths = [
+  "/usr/bin",
+  "/usr/sbin",
+  "/etc",
+]
+
+watch_paths = [
+  "/home",
+  "/var/www",
+  "/root",
+]
+
+[scan.exclude]
+paths = [
+  "/proc",
+  "/sys",
+  "/dev",
+  "/run",
+  "/tmp",
+  "/var/log",
+]
+extensions = [".log", ".tmp", ".swp", ".pid"]
+
+# ── Ransomware Detection ──────────────────────────────────────────────────────
+# Fires a critical alert when >threshold files change in a single directory
+# within window_seconds. Catches most encryption-based ransomware early.
+[ransomware]
+enabled        = true
+threshold      = 20     # files changed before alert
+window_seconds = 30     # sliding window size
+
+# ── Canary / Honeypot Files ───────────────────────────────────────────────────
+# Plants hidden sentinel files in each watched directory. Any access or deletion
+# of a canary fires a critical alert — highly effective against ransomware and
+# stealthy file crawlers.
+[canary]
+enabled = true
+
+[quarantine]
+enabled = true
+path    = "/var/lib/tpt/quarantine"
+encrypt = true
+
+[threatfeed]
+malwarebazaar  = true
+virustotal_key = ""       # optional: your free VT API key
+cache_ttl      = "168h"   # 7 days
+
+[alerts]
+smtp_host     = "smtp.gmail.com:587"
+smtp_user     = "alerts@example.com"
+smtp_password = ""
+recipients    = ["admin@example.com"]
+min_severity  = "warn"         # debug | info | warn | critical
+cooldown      = "5m"
+weekly_digest = true           # send a weekly security summary email
+digest_cron   = "0 8 * * 0"   # Sunday at 08:00
+
+# ── YARA Scanning ─────────────────────────────────────────────────────────────
+# Event-driven: only runs when a file changes. Near-zero idle overhead.
+# Requires libyara: build with CGO_ENABLED=1 go build -tags yara
+# (or: make build-yara). Without the tag, this section is safely ignored.
+[yara]
+enabled     = false
+rules_dir   = "/etc/tpt/yara-rules"
+auto_update = true
+update_cron = "0 3 * * *"   # daily at 03:00
+
+# ── ClamAV Integration ────────────────────────────────────────────────────────
+# Requires a running clamd daemon (apt install clamav-daemon / brew install clamav).
+# TPT-AV is a clamd CLIENT — it never ships its own signature DB.
+# Graceful degradation: if clamd is not running, scan continues without it.
+[clamav]
+enabled = false
+socket  = "/var/run/clamav/clamd.ctl"   # Linux Unix socket
+# socket = "127.0.0.1:3310"             # Windows TCP or remote clamd
+
+# ── Static Heuristics ─────────────────────────────────────────────────────────
+# Pure Go — no external deps, no CGo. Analyzes PE (Windows) and ELF (Linux)
+# executables for signs of packing, injection, or unusual structure.
+[heuristics]
+enabled        = true
+entropy_warn   = 7.2   # per-section Shannon entropy threshold (0-8)
+score_warn     = 70    # score ≥ this → warn event
+score_critical = 85    # score ≥ this → critical event
+
+# ── Network Connection Monitor ────────────────────────────────────────────────
+# Read-only — polls OS connection table (no packet capture).
+# Detects: first-seen connections, suspicious destination ports, beaconing.
+[netmon]
+enabled          = true
+poll_interval_s  = 5
+suspicious_ports = [4444, 6666, 6667, 31337, 1337, 8888, 9999]
+beacon_threshold = 10    # same process→IP pair this many times/minute → alert
+
+[api]
+listen       = "127.0.0.1:7732"
+require_auth = false   # set true to protect API with a Bearer token
+
+[eventlog]
+path = "/var/log/tpt/events.jsonl"

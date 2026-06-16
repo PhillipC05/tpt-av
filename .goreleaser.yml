@@ -1,0 +1,112 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  # Pure-Go builds — no CGO toolchain required (modernc.org/sqlite is pure Go)
+  - id: guard-linux
+    binary: tpt-guard
+    main: ./cmd/tpt-guard
+    goos: [linux]
+    goarch: [amd64, arm64]
+    ldflags: ["-s -w"]
+    env: ["CGO_ENABLED=0"]
+
+  - id: patrol-linux
+    binary: tpt-patrol
+    main: ./cmd/tpt-patrol
+    goos: [linux]
+    goarch: [amd64, arm64]
+    ldflags: ["-s -w"]
+    env: ["CGO_ENABLED=0"]
+
+  - id: backup-linux
+    binary: tpt-backup
+    main: ./cmd/tpt-backup
+    goos: [linux]
+    goarch: [amd64, arm64]
+    ldflags: ["-s -w"]
+    env: ["CGO_ENABLED=0"]
+
+  - id: tptctl-linux
+    binary: tptctl
+    main: ./cmd/tptctl
+    goos: [linux]
+    goarch: [amd64, arm64]
+    ldflags: ["-s -w"]
+    env: ["CGO_ENABLED=0"]
+
+  - id: guard-windows
+    binary: tpt-guard
+    main: ./cmd/tpt-guard
+    goos: [windows]
+    goarch: [amd64]
+    ldflags: ["-s -w -H=windowsgui"]
+    env: ["CGO_ENABLED=0"]
+
+  - id: patrol-windows
+    binary: tpt-patrol
+    main: ./cmd/tpt-patrol
+    goos: [windows]
+    goarch: [amd64]
+    ldflags: ["-s -w -H=windowsgui"]
+    env: ["CGO_ENABLED=0"]
+
+  - id: backup-windows
+    binary: tpt-backup
+    main: ./cmd/tpt-backup
+    goos: [windows]
+    goarch: [amd64]
+    ldflags: ["-s -w -H=windowsgui"]
+    env: ["CGO_ENABLED=0"]
+
+  - id: tptctl-windows
+    binary: tptctl
+    main: ./cmd/tptctl
+    goos: [windows]
+    goarch: [amd64]
+    ldflags: ["-s -w"]
+    env: ["CGO_ENABLED=0"]
+
+  # tpt-tray requires a CGO toolchain (getlantern/systray uses cgo on Windows)
+  - id: tray-windows
+    binary: tpt-tray
+    main: ./cmd/tpt-tray
+    goos: [windows]
+    goarch: [amd64]
+    ldflags: ["-s -w -H=windowsgui"]
+    env: ["CGO_ENABLED=1"]
+
+archives:
+  - id: linux
+    builds: [guard-linux, patrol-linux, backup-linux, tptctl-linux]
+    name_template: "tpt-av_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format: tar.gz
+    files:
+      - config/*.toml.example
+      - systemd/*.service
+      - install.sh
+
+  - id: windows
+    builds: [guard-windows, patrol-windows, backup-windows, tptctl-windows, tray-windows]
+    name_template: "tpt-av_{{ .Version }}_windows_amd64"
+    format: zip
+    files:
+      - config/*.toml.example
+      - install.ps1
+
+checksum:
+  name_template: "tpt-av_{{ .Version }}_checksums.txt"
+
+release:
+  draft: false
+  prerelease: auto
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

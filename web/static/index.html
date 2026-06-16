@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TPT-AV Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; }
+  header { padding: 16px 24px; background: #1a1d27; border-bottom: 1px solid #2d3148; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 1.1rem; font-weight: 600; letter-spacing: 0.05em; color: #7c85f0; }
+  .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; background: #2d3148; color: #94a3b8; }
+  .badge.ok { background: #14532d; color: #86efac; }
+  .badge.err { background: #7f1d1d; color: #fca5a5; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 24px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+  .panel { background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px; overflow: hidden; }
+  .panel-header { padding: 12px 16px; background: #22263a; border-bottom: 1px solid #2d3148; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; display: flex; justify-content: space-between; align-items: center; }
+  .panel-body { padding: 12px 0; max-height: 480px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  th { padding: 6px 16px; text-align: left; color: #64748b; font-weight: 500; border-bottom: 1px solid #2d3148; }
+  td { padding: 8px 16px; border-bottom: 1px solid #1e2235; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1e2235; }
+  .sev { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+  .sev-debug { background:#1e293b; color:#64748b; }
+  .sev-info { background:#1e3a5f; color:#7dd3fc; }
+  .sev-warn { background:#422006; color:#fbbf24; }
+  .sev-critical { background:#450a0a; color:#f87171; }
+  .add-rule { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #2d3148; }
+  .add-rule input { flex: 1; background: #0f1117; border: 1px solid #2d3148; color: #e2e8f0; border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; }
+  .add-rule input:focus { outline: none; border-color: #7c85f0; }
+  button { background: #4f46e5; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-size: 0.8rem; cursor: pointer; }
+  button:hover { background: #6366f1; }
+  button.danger { background: #991b1b; }
+  button.danger:hover { background: #b91c1c; }
+  .ts { color: #475569; font-size: 0.72rem; }
+  .empty { padding: 32px; text-align: center; color: #475569; font-size: 0.85rem; }
+  .status-bar { display: flex; gap: 24px; padding: 8px 24px; background: #13161f; border-bottom: 1px solid #1e2235; font-size: 0.75rem; color: #475569; }
+  .status-bar span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+  .dot.off { background: #475569; }
+
+  /* Health Score */
+  .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 24px 0; }
+  .score-card { background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .score-top { display: flex; align-items: center; gap: 16px; }
+  .score-circle { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: flex-end; flex-direction: column; font-size: 1.4rem; font-weight: 700; border: 4px solid; padding-bottom: 6px; }
+  .score-circle.green { border-color: #22c55e; color: #22c55e; }
+  .score-circle.amber { border-color: #f59e0b; color: #f59e0b; }
+  .score-circle.red   { border-color: #ef4444; color: #ef4444; }
+  .score-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; }
+  .factor-row { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; }
+  .factor-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .factor-dot.on  { background: #22c55e; }
+  .factor-dot.off { background: #475569; }
+  .tip { font-size: 0.72rem; color: #f59e0b; margin-top: 2px; padding-left: 16px; }
+
+  /* Auth token input */
+  .auth-bar { display: flex; gap: 8px; padding: 6px 24px; background: #13161f; border-bottom: 1px solid #1e2235; font-size: 0.75rem; color: #475569; align-items: center; }
+  .auth-bar input { background: #0f1117; border: 1px solid #2d3148; color: #94a3b8; border-radius: 4px; padding: 3px 8px; font-size: 0.72rem; width: 300px; font-family: monospace; }
+</style>
+</head>
+<body>
+<header>
+  <h1>TPT-AV</h1>
+  <span id="guard-badge" class="badge">Guard ···</span>
+  <span id="patrol-badge" class="badge">Patrol ···</span>
+  <span style="margin-left:auto; font-size:0.75rem; color:#475569" id="last-refresh"></span>
+</header>
+<div class="auth-bar">
+  <span>API Token (if auth enabled):</span>
+  <input id="api-token" type="password" placeholder="paste token from /etc/tpt/api.token" oninput="saveToken()">
+  <span id="token-status" style="font-size:0.7rem;color:#475569"></span>
+</div>
+<div class="status-bar">
+  <span><span class="dot" id="guard-dot"></span> Guard: <strong id="guard-policy">—</strong></span>
+  <span><span class="dot off" id="patrol-dot"></span> Patrol last scan: <strong id="last-scan">—</strong></span>
+  <span>Quarantine: <strong id="qcount">—</strong></span>
+</div>
+
+<!-- Health Score row -->
+<div class="score-grid">
+  <div class="score-card" id="guard-score-card">
+    <div class="score-top">
+      <div class="score-circle" id="guard-score-circle">—</div>
+      <div>
+        <div class="score-label">Guard Health</div>
+        <div style="font-size:0.75rem;color:#64748b;margin-top:4px" id="guard-score-sub">loading…</div>
+      </div>
+    </div>
+    <div id="guard-factors"></div>
+  </div>
+  <div class="score-card" id="patrol-score-card">
+    <div class="score-top">
+      <div class="score-circle" id="patrol-score-circle">—</div>
+      <div>
+        <div class="score-label">Patrol Health</div>
+        <div style="font-size:0.75rem;color:#64748b;margin-top:4px" id="patrol-score-sub">loading…</div>
+      </div>
+    </div>
+    <div id="patrol-factors"></div>
+  </div>
+</div>
+
+<main>
+  <div class="panel">
+    <div class="panel-header">
+      Guard Rules
+      <button onclick="loadRules()">↻</button>
+    </div>
+    <div class="panel-body">
+      <table>
+        <thead><tr><th>Type</th><th>Value</th><th>Comment</th><th></th></tr></thead>
+        <tbody id="rules-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="add-rule">
+      <input id="new-cidr" placeholder="IP or CIDR (e.g. 1.2.3.4/32)">
+      <input id="new-comment" placeholder="Comment (optional)">
+      <button onclick="addRule()">Allow</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      Events
+      <button onclick="loadEvents()">↻</button>
+    </div>
+    <div class="panel-body">
+      <table>
+        <thead><tr><th>Time</th><th>Src</th><th>Type</th><th>Severity</th><th>Details</th></tr></thead>
+        <tbody id="events-body"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      Quarantine
+      <button onclick="loadQuarantine()">↻</button>
+    </div>
+    <div class="panel-body">
+      <table>
+        <thead><tr><th>File</th><th>Threat</th><th>Time</th><th></th></tr></thead>
+        <tbody id="quar-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+const GUARD  = 'http://127.0.0.1:7731';
+const PATROL = 'http://127.0.0.1:7732';
+
+function getToken() { return localStorage.getItem('tpt-api-token') || ''; }
+function saveToken() {
+  const t = document.getElementById('api-token').value;
+  localStorage.setItem('tpt-api-token', t);
+  document.getElementById('token-status').textContent = t ? '✓ saved' : '';
+}
+
+// Restore token on load
+window.addEventListener('DOMContentLoaded', () => {
+  const t = getToken();
+  if (t) {
+    document.getElementById('api-token').value = t;
+    document.getElementById('token-status').textContent = '✓ saved';
+  }
+});
+
+async function api(url, method='GET', body=null) {
+  try {
+    const headers = {'Content-Type':'application/json'};
+    const token = getToken();
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const opts = { method, headers };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(url, opts);
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+function fmtTs(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleTimeString();
+}
+
+function sevClass(s) { return 'sev sev-' + (s||'info'); }
+
+function scoreColor(score, max) {
+  const pct = max > 0 ? score / max : 0;
+  if (pct >= 0.8) return 'green';
+  if (pct >= 0.5) return 'amber';
+  return 'red';
+}
+
+function renderFactors(containerId, factors) {
+  const el = document.getElementById(containerId);
+  if (!factors || !factors.length) { el.innerHTML = ''; return; }
+  el.innerHTML = factors.map(f => `
+    <div class="factor-row">
+      <span class="factor-dot ${f.enabled ? 'on' : 'off'}"></span>
+      <span style="color:${f.enabled ? '#94a3b8' : '#475569'}">${f.name}</span>
+    </div>
+    ${!f.enabled && f.tip ? `<div class="tip">↳ ${f.tip}</div>` : ''}
+  `).join('');
+}
+
+async function loadHealthScores() {
+  const [g, p] = await Promise.all([
+    api(GUARD+'/health-score'),
+    api(PATROL+'/health-score')
+  ]);
+
+  if (g) {
+    const c = document.getElementById('guard-score-circle');
+    c.textContent = g.score;
+    c.className = 'score-circle ' + scoreColor(g.score, g.max);
+    document.getElementById('guard-score-sub').textContent = g.score + ' / ' + g.max + ' pts';
+    renderFactors('guard-factors', g.factors);
+  }
+  if (p) {
+    const c = document.getElementById('patrol-score-circle');
+    c.textContent = p.score;
+    c.className = 'score-circle ' + scoreColor(p.score, p.max);
+    document.getElementById('patrol-score-sub').textContent = p.score + ' / ' + p.max + ' pts';
+    renderFactors('patrol-factors', p.factors);
+  }
+}
+
+async function loadStatus() {
+  const [g, p] = await Promise.all([
+    api(GUARD+'/status'),
+    api(PATROL+'/status')
+  ]);
+  const gb = document.getElementById('guard-badge');
+  const pb = document.getElementById('patrol-badge');
+  if (g) { gb.textContent='Guard ✓'; gb.className='badge ok'; document.getElementById('guard-policy').textContent=g.policy||'—'; document.getElementById('guard-dot').className='dot'; }
+  else   { gb.textContent='Guard ✗'; gb.className='badge err'; document.getElementById('guard-dot').className='dot off'; }
+  if (p) { pb.textContent='Patrol ✓'; pb.className='badge ok'; document.getElementById('last-scan').textContent=p.last_scan?new Date(p.last_scan).toLocaleString():'never'; document.getElementById('patrol-dot').className='dot'; }
+  else   { pb.textContent='Patrol ✗'; pb.className='badge err'; document.getElementById('patrol-dot').className='dot off'; }
+  document.getElementById('last-refresh').textContent='Updated ' + new Date().toLocaleTimeString();
+}
+
+async function loadRules() {
+  const rules = await api(GUARD+'/rules') || [];
+  const tb = document.getElementById('rules-body');
+  if (!rules.length) { tb.innerHTML='<tr><td colspan="4" class="empty">No rules configured</td></tr>'; return; }
+  tb.innerHTML = rules.map(r => `
+    <tr>
+      <td>${r.type}</td>
+      <td>${r.ip_cidr||r.domain||r.process||'—'}</td>
+      <td>${r.comment||''}</td>
+      <td><button class="danger" onclick="removeRule(${r.id})">✕</button></td>
+    </tr>`).join('');
+}
+
+async function addRule() {
+  const cidr = document.getElementById('new-cidr').value.trim();
+  const comment = document.getElementById('new-comment').value.trim();
+  if (!cidr) return;
+  await api(GUARD+'/rules/allow/ip', 'POST', {cidr, comment});
+  document.getElementById('new-cidr').value='';
+  document.getElementById('new-comment').value='';
+  loadRules();
+}
+
+async function removeRule(id) {
+  await api(GUARD+'/rules/'+id, 'DELETE');
+  loadRules();
+}
+
+async function loadEvents() {
+  const evts = await api(PATROL+'/events') || [];
+  const tb = document.getElementById('events-body');
+  if (!evts.length) { tb.innerHTML='<tr><td colspan="5" class="empty">No events</td></tr>'; return; }
+  const recent = evts.slice(-50).reverse();
+  tb.innerHTML = recent.map(e => {
+    const detail = Object.entries(e.data||{}).map(([k,v])=>`${k}=${v}`).join(' ');
+    return `<tr>
+      <td class="ts">${fmtTs(e.ts)}</td>
+      <td>${e.source}</td>
+      <td>${e.type}</td>
+      <td><span class="${sevClass(e.severity)}">${e.severity}</span></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${detail}">${detail}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function loadQuarantine() {
+  const list = await api(PATROL+'/quarantine') || [];
+  document.getElementById('qcount').textContent = list.length;
+  const tb = document.getElementById('quar-body');
+  if (!list.length) { tb.innerHTML='<tr><td colspan="4" class="empty">No quarantined files</td></tr>'; return; }
+  tb.innerHTML = list.map(q => `
+    <tr>
+      <td title="${q.original_path}">${q.original_name}</td>
+      <td>${q.threat_info}</td>
+      <td class="ts">${fmtTs(q.quarantine_time)}</td>
+      <td>
+        <button onclick="restoreFile('${q.id}')">Restore</button>
+        <button class="danger" onclick="deleteFile('${q.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function restoreFile(id) {
+  if (!confirm('Restore this file to its original location?')) return;
+  await api(PATROL+'/quarantine/'+id+'/restore', 'POST', {});
+  loadQuarantine();
+}
+
+async function deleteFile(id) {
+  if (!confirm('Permanently delete this quarantined file?')) return;
+  await api(PATROL+'/quarantine/'+id, 'DELETE');
+  loadQuarantine();
+}
+
+async function refresh() {
+  await Promise.all([loadStatus(), loadHealthScores(), loadRules(), loadEvents(), loadQuarantine()]);
+}
+
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>

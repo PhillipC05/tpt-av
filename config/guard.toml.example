@@ -1,0 +1,57 @@
+# TPT Guard – example configuration
+# Copy to /etc/tpt/guard.toml (Linux) or C:\ProgramData\TPT\guard.toml (Windows)
+
+[network]
+default_policy = "deny"                           # "deny" | "allow"
+dns_listen     = "127.0.0.1:5353"
+dns_upstream   = "8.8.8.8:53"
+doh_upstream   = "https://1.1.1.1/dns-query"     # DNS-over-HTTPS (recommended)
+backend        = "auto"                           # "auto" | "iptables" | "nftables" (Linux only)
+
+[threatfeed]
+phishing_feed_url       = "https://openphish.com/feed.txt"  # daily phishing domain list
+phishing_cache_ttl_hours = 24
+abuseipdb_key           = ""   # optional: your AbuseIPDB API key (free tier available)
+abuseipdb_threshold     = 75   # block IPs with confidence score >= this value (0-100)
+
+[api]
+listen       = "127.0.0.1:7731"
+require_auth = false   # set true to protect API with a Bearer token (see /etc/tpt/api.token)
+
+[eventlog]
+path = "/var/log/tpt/events.jsonl"
+
+# ── Whitelist entries ─────────────────────────────────────────────────────────
+
+[[allow.ip]]
+cidr    = "192.168.1.0/24"
+comment = "Local LAN"
+
+[[allow.ip]]
+cidr    = "10.0.0.0/8"
+comment = "Private RFC1918"
+
+[[allow.domain]]
+pattern = "*.ubuntu.com"
+
+[[allow.domain]]
+pattern = "*.github.com"
+
+[[allow.process]]
+name    = "curl"
+domains = ["*.example.com"]
+
+# Port-level rules — restrict specific IPs to only certain ports/protocols
+# [[allow.ip]]
+# cidr    = "8.8.8.8/32"
+# comment = "Google DNS (UDP 53 only)"
+# ports   = [53]
+# proto   = "udp"
+
+# ── Geo-blocking ──────────────────────────────────────────────────────────────
+# Downloads per-country IP ranges from ipverse/rir-ip and adds DROP rules.
+# Uses cached data on restart — never hard-fails if feed is unreachable.
+# [geoblock]
+# enabled           = false
+# blocked_countries = []          # ISO 3166-1 alpha-2: ["CN", "RU", "KP"]
+# update_cron       = "0 4 * * 0" # weekly refresh, Sunday 04:00

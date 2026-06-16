@@ -1,0 +1,39 @@
+# TPT Backup – example configuration
+# Copy to /etc/tpt/backup.toml (Linux) or C:\ProgramData\TPT\backup.toml (Windows)
+# Run as a daemon: tpt-backup  (follows this schedule)
+# Run once:        tpt-backup -run
+
+schedule = "0 2 * * *"   # daily at 02:00 (cron syntax)
+
+source_paths = [
+  "/home",
+  "/etc",
+  "/var/www",
+]
+
+# ── Local Backup ──────────────────────────────────────────────────────────────
+# Creates timestamped snapshot directories (YYYY-MM-DD_HH-MM/).
+# Keeps the <retain> most recent snapshots and deletes older ones.
+[local]
+enabled = false
+dest    = "/mnt/backup/tpt"   # local path or mounted NAS / external drive
+retain  = 7                   # number of snapshots to keep
+
+# ── Cloud Backup (Wasabi S3) ──────────────────────────────────────────────────
+# Wasabi is S3-compatible and significantly cheaper than AWS S3.
+# Create a free account at wasabi.com, then create a bucket and access keys.
+#
+# Security: files are AES-256-GCM encrypted CLIENT-SIDE before upload.
+# Wasabi never sees your plaintext data. The passphrase never leaves this machine.
+# If you lose the passphrase, the backup cannot be decrypted — keep it safe.
+[cloud]
+enabled     = false
+endpoint    = "s3.wasabisys.com"
+bucket      = "my-tpt-backup"
+access_key  = ""
+secret_key  = ""
+region      = "us-east-1"       # or "eu-central-1", "ap-northeast-1", etc.
+passphrase  = ""                 # strong passphrase for client-side AES-256 encryption
+
+[eventlog]
+path = "/var/log/tpt/events.jsonl"

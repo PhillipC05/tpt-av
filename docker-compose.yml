@@ -1,0 +1,63 @@
+
+# TPT-AV Docker Compose
+#
+# NOTE: Docker containers run a Linux kernel regardless of host OS.
+# This setup works on Linux hosts. On Windows/macOS, the firewall (iptables)
+# and process monitor (netlink) features run inside the Linux VM — they
+# protect the container's network namespace, not the Windows host.
+#
+# Quick start:
+#   docker compose up -d
+#   docker compose logs -f
+
+services:
+  tpt-guard:
+    build: .
+    command: /usr/local/bin/tpt-guard
+    restart: unless-stopped
+    # Host networking + privileged: required for iptables firewall rules.
+    network_mode: host
+    privileged: true
+    volumes:
+      - ./config/guard.toml.example:/etc/tpt/guard.toml:ro
+      - tpt-data:/var/lib/tpt
+      - tpt-logs:/var/log/tpt
+    environment:
+      - TZ=UTC
+
+  tpt-patrol:
+    build: .
+    command: /usr/local/bin/tpt-patrol
+    restart: unless-stopped
+    # pid: host gives access to the host process list for process monitoring.
+    pid: host
+    volumes:
+      - ./config/patrol.toml.example:/etc/tpt/patrol.toml:ro
+      - tpt-data:/var/lib/tpt
+      - tpt-logs:/var/log/tpt
+      # Mount the paths you want to protect (read-only is fine for scanning):
+      # - /home:/home:ro
+      # - /etc:/etc:ro
+    depends_on:
+      - tpt-guard
+    environment:
+      - TZ=UTC
+
+  tpt-backup:
+    build: .
+    command: /usr/local/bin/tpt-backup
+    restart: unless-stopped
+    volumes:
+      - ./config/backup.toml.example:/etc/tpt/backup.toml:ro
+      - tpt-data:/var/lib/tpt
+      - tpt-logs:/var/log/tpt
+      # Mount paths to back up:
+      # - /home:/home:ro
+      # Mount local backup destination (if local backup is enabled):
+      # - /mnt/backup:/mnt/backup
+    environment:
+      - TZ=UTC
+
+volumes:
+  tpt-data:
+  tpt-logs:
